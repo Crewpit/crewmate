@@ -1,0 +1,774 @@
+
+body {
+    min-height: 100vh;
+}
+
+/* The vendored PatternFly build ships without utility classes (pf-v6-u-*),
+   so the few spacing ones this page uses are defined here. */
+.pf-v6-u-mt-sm {
+    margin-block-start: var(--pf-t--global--spacer--sm) !important;
+}
+
+.pf-v6-u-mt-md {
+    margin-block-start: var(--pf-t--global--spacer--md) !important;
+}
+
+.pf-v6-u-mb-md {
+    margin-block-end: var(--pf-t--global--spacer--md) !important;
+}
+
+/* Sub-menu active accent, matched in lightness to the brand blue per theme. */
+:root {
+    --app-sub-accent: var(--pf-t--color--purple--50);
+}
+
+:root.pf-v6-theme-dark {
+    --app-sub-accent: var(--pf-t--color--purple--30);
+}
+
+/* Menu bar: the main container is a flex column, so the bar takes the top
+   row and <main> fills and scrolls the rest. */
+
+.pf-v6-c-page__main-container > .pf-v6-c-page__main {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.app-menubar {
+    flex: none;
+    align-self: flex-end;
+    display: flex;
+    align-items: center;
+    max-width: calc(100% - 2 * var(--pf-t--global--spacer--md));
+    margin: var(--pf-t--global--spacer--md) var(--pf-t--global--spacer--md) 0;
+    padding: var(--pf-t--global--spacer--xs);
+    background: color-mix(in srgb, var(--pf-t--global--background--color--primary--default) 55%, transparent);
+    backdrop-filter: blur(10px) saturate(140%);
+    border: 1px solid color-mix(in srgb, var(--pf-t--global--border--color--default) 60%, transparent);
+    border-radius: 999px;
+    box-shadow: var(--pf-t--global--box-shadow--md);
+}
+
+.app-menubar__toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--pf-t--global--spacer--sm);
+    padding: var(--pf-t--global--spacer--xs) var(--pf-t--global--spacer--sm) var(--pf-t--global--spacer--xs) var(--pf-t--global--spacer--md);
+    border: 0;
+    border-radius: 999px;
+    background: none;
+    color: var(--pf-t--global--text--color--regular);
+    font: inherit;
+    font-weight: var(--pf-t--global--font--weight--body--bold);
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.app-menubar__toggle:hover {
+    background: var(--pf-t--global--background--color--action--plain--hover);
+}
+
+.app-menubar__glyph {
+    flex: none;
+    width: 0.875rem;
+    height: 0.875rem;
+    fill: none;
+    stroke: var(--pf-t--global--color--brand--default);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* "|>" while collapsed, "|<" while expanded. */
+.app-menubar__toggle[aria-expanded="true"] .app-menubar__glyph-expand,
+.app-menubar__toggle[aria-expanded="false"] .app-menubar__glyph-hide {
+    display: none;
+}
+
+/* Animates open/closed with grid-template-columns 0fr <-> 1fr (no fixed
+   width needed). App.menu sets `inert` on the list while collapsed. */
+.app-menubar__collapse {
+    display: grid;
+    grid-template-columns: 1fr;
+    min-width: 0;
+    overflow: hidden;
+    transition: grid-template-columns var(--pf-t--global--motion--duration--fade--default) ease;
+}
+
+.app-menubar.is-collapsed .app-menubar__collapse {
+    grid-template-columns: 0fr;
+}
+
+.app-menubar__items {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    min-width: 0;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+/* A long top bar scrolls sideways instead of clipping. */
+.app-menubar__collapse > .app-menubar__items {
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+/* The divider lives on the first item, not the list: a 0-width grid column
+   can't shrink a box's own border/padding, but it does clip its children. */
+.app-menubar__items > li:first-child {
+    margin-inline-start: var(--pf-t--global--spacer--xs);
+    padding-inline-start: var(--pf-t--global--spacer--sm);
+    border-inline-start: 1px solid var(--pf-t--global--border--color--default);
+}
+
+.app-menubar__item {
+    display: block;
+    padding: var(--pf-t--global--spacer--xs) var(--pf-t--global--spacer--md);
+    border-radius: 999px;
+    color: var(--pf-t--global--text--color--subtle);
+    font-size: var(--pf-t--global--font--size--body--sm);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.app-menubar__item:hover {
+    color: var(--pf-t--global--text--color--regular);
+    background: var(--pf-t--global--background--color--action--plain--hover);
+}
+
+/* aria-current="page" (current page) or "true" (last-clicked action item). */
+.app-menubar__item[aria-current] {
+    color: var(--pf-t--global--color--brand--default);
+    font-weight: var(--pf-t--global--font--weight--body--bold);
+    background: color-mix(in srgb, var(--pf-t--global--color--brand--default) 16%, transparent);
+}
+
+/* Sub-bar for an item's `children`; takes its own row like the main bar. */
+.app-submenu {
+    flex: none;
+    align-self: flex-end;
+    max-width: calc(100% - 2 * var(--pf-t--global--spacer--md));
+    margin: var(--pf-t--global--spacer--xs) var(--pf-t--global--spacer--md) 0;
+    padding: 2px;
+    background: color-mix(in srgb, var(--pf-t--global--background--color--primary--default) 40%, transparent);
+    backdrop-filter: blur(10px) saturate(140%);
+    border: 1px dashed color-mix(in srgb, var(--pf-t--global--border--color--default) 70%, transparent);
+    /* Rounded rectangle, not a pill: the sub-bar wraps when there are many items. */
+    border-radius: 1.25rem;
+}
+
+/* Hover/focus preview of a sub-bar that isn't the current page's: floats over
+   the content (top is set by App.menu) so the page below never shifts. */
+.pf-v6-c-page__main-container {
+    position: relative;
+}
+
+.app-submenu.is-preview {
+    position: absolute;
+    inset-inline-end: 0;
+    z-index: var(--pf-t--global--z-index--md, 200);
+}
+
+/* The current branch's bar while another is previewed: keeps its row height. */
+.app-submenu.is-covered {
+    visibility: hidden;
+}
+
+.app-submenu .app-menubar__items {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+/* Sub-menu active item: purple pill with a leading dot. */
+.app-submenu .app-menubar__item[aria-current] {
+    color: var(--app-sub-accent);
+    background: color-mix(in srgb, var(--app-sub-accent) 16%, transparent);
+}
+
+.app-submenu .app-menubar__item[aria-current]::before {
+    content: "";
+    display: inline-block;
+    width: 0.4em;
+    height: 0.4em;
+    margin-inline-end: 0.45em;
+    vertical-align: 0.15em;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+/* The main bar's first-item divider doesn't apply inside a sub-bar. */
+.app-submenu .app-menubar__items > li:first-child {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+/* Items with an `action` in MENU render as <button>; make them look like the links. */
+button.app-menubar__item {
+    border: 0;
+    background: none;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+/* Links with no `path` in MENU: visibly inert. */
+.app-menubar__item.is-placeholder {
+    font-style: italic;
+    opacity: 0.7;
+    cursor: default;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .app-menubar__collapse {
+        transition: none;
+    }
+}
+
+/* App.run() busy state on whatever button it was given. */
+.app-is-busy {
+    cursor: progress;
+    opacity: 0.6;
+}
+
+/* App.alerts.toast(): bottom-right, so toasts never cover the menu bar. */
+.pf-v6-c-alert-group.pf-m-toast.app-toasts {
+    inset-block-start: auto;
+    inset-block-end: var(--pf-t--global--spacer--lg);
+}
+
+.app-alert__icon {
+    font-weight: var(--pf-t--global--font--weight--body--bold);
+}
+
+/* App.modals.changeList() */
+.app-changes {
+    margin: var(--pf-t--global--spacer--sm) 0;
+    padding-inline-start: var(--pf-t--global--spacer--lg);
+    list-style: disc;
+}
+
+.app-changes__old {
+    font-style: italic;
+    color: var(--pf-t--global--text--color--status--warning--default);
+}
+
+.app-changes__new {
+    color: var(--pf-t--global--text--color--status--success--default);
+}
+
+.app-settings__heading {
+    font-weight: var(--pf-t--global--font--weight--body--bold);
+}
+
+/* Keeps a lone input from stretching edge-to-edge on a wide window. */
+.app-settings .pf-v6-c-form__group-control {
+    max-inline-size: 28rem;
+}
+
+.app-settings__alert:not(:empty) {
+    margin-block-end: var(--pf-t--global--spacer--md);
+}
+
+/* App.table.create() */
+.app-table .app-table__num {
+    text-align: end;
+    font-variant-numeric: tabular-nums;
+}
+
+.app-table__empty {
+    color: var(--pf-t--global--text--color--subtle);
+    text-align: center;
+}
+
+.app-muted {
+    color: var(--pf-t--global--text--color--subtle);
+    font-size: var(--pf-t--global--font--size--body--sm);
+}
+
+/* App.modals */
+.app-modal {
+    max-inline-size: 36rem;
+    inline-size: 100%;
+}
+
+/* Status line set via the controller's setStatus(). */
+.app-modal__status {
+    margin-block-start: var(--pf-t--global--spacer--md);
+    font-weight: var(--pf-t--global--font--weight--body--bold);
+    color: var(--pf-t--global--color--brand--default);
+}
+
+.app-modal__countdown {
+    margin-inline-end: auto;
+    color: var(--pf-t--global--text--color--subtle);
+}
+
+
+/* App.modals caps the box at 36rem; the install modal needs more room. */
+.app-modal.pf-m-lg {
+    max-inline-size: 60rem;
+}
+
+.app-modal__section:not(:empty) {
+    margin-block-start: var(--pf-t--global--spacer--md);
+}
+
+/* Activity log (pane + install modal). */
+.app-log {
+    max-block-size: 28rem;
+    overflow: auto;
+    margin: 0;
+    padding: var(--pf-t--global--spacer--sm) var(--pf-t--global--spacer--md);
+    background: var(--pf-t--global--background--color--secondary--default);
+    border: 1px solid var(--pf-t--global--border--color--default);
+    border-radius: var(--pf-t--global--border--radius--small);
+    font-family: var(--pf-t--global--font--family--mono);
+    font-size: var(--pf-t--global--font--size--body--sm);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.app-log:empty::before {
+    content: "Nothing yet.";
+    color: var(--pf-t--global--text--color--subtle);
+}
+
+.app-log--modal {
+    max-block-size: 14rem;
+}
+
+.app-log__time {
+    color: var(--pf-t--global--text--color--subtle);
+}
+
+.app-log__stage {
+    color: var(--pf-t--global--color--brand--default);
+}
+
+.app-log__line--cmd {
+    font-weight: var(--pf-t--global--font--weight--body--bold);
+}
+
+.app-log__line--raw {
+    color: var(--pf-t--global--text--color--subtle);
+}
+
+.app-log__line--warn,
+.app-log__line--dry {
+    color: var(--pf-t--global--text--color--status--warning--default);
+}
+
+.app-log__line--error {
+    color: var(--pf-t--global--text--color--status--danger--default);
+}
+
+/* Install modal step list. */
+.app-steps {
+    margin: var(--pf-t--global--spacer--md) 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.app-steps__item {
+    padding-block: 2px;
+}
+
+.app-steps__icon {
+    display: inline-block;
+    inline-size: 1.5em;
+    font-weight: var(--pf-t--global--font--weight--body--bold);
+}
+
+.app-steps__item.is-todo {
+    color: var(--pf-t--global--text--color--subtle);
+}
+
+.app-steps__item.is-run .app-steps__icon {
+    color: var(--pf-t--global--color--brand--default);
+}
+
+.app-steps__item.is-ok .app-steps__icon {
+    color: var(--pf-t--global--text--color--status--success--default);
+}
+
+.app-steps__item.is-warn .app-steps__icon {
+    color: var(--pf-t--global--text--color--status--warning--default);
+}
+
+.app-steps__item.is-fail .app-steps__icon {
+    color: var(--pf-t--global--text--color--status--danger--default);
+}
+
+.app-preflight {
+    margin-block-start: var(--pf-t--global--spacer--sm);
+}
+
+/* Gallery cards. */
+.app-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(27rem, 100%), 1fr));
+    gap: var(--pf-t--global--spacer--md);
+}
+
+.app-gallery__card {
+    border: 1px solid var(--pf-t--global--border--color--default);
+}
+
+.app-gallery__card a {
+    word-break: break-all;
+}
+
+.app-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--pf-t--global--spacer--sm);
+}
+
+
+#pane-custom .pf-v6-c-form__group-control,
+#pane-settings .pf-v6-c-form__group-control {
+    max-inline-size: 36rem;
+}
+
+.app-status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--pf-t--global--spacer--xs);
+}
+
+.app-status > .app-muted {
+    flex-basis: 100%;
+}
+
+.app-legend .app-yes {
+    color: var(--pf-t--global--text--color--status--success--default);
+}
+
+.app-legend .app-no {
+    color: var(--pf-t--global--text--color--status--danger--default);
+}
+
+.app-legend .app-warn {
+    color: var(--pf-t--global--text--color--status--warning--default);
+}
+
+.app-strong {
+    font-weight: var(--pf-t--global--font--weight--body--bold);
+}
+
+.app-path {
+    font-family: var(--pf-t--global--font--family--mono);
+    font-size: var(--pf-t--global--font--size--body--sm);
+    word-break: break-all;
+}
+
+.app-gallery__card {
+    min-block-size: 15rem;
+}
+
+.app-gallery__card .pf-v6-c-card__body {
+    flex: 1 1 auto;
+}
+
+/* Pending state (startup). */
+.app-pending {
+    display: flex;
+    align-items: center;
+    gap: var(--pf-t--global--spacer--md);
+    padding: var(--pf-t--global--spacer--lg) var(--pf-t--global--spacer--md);
+}
+
+.app-pending__spinner {
+    display: inline-flex;
+    flex: none;
+}
+
+/* The gallery grid would squeeze the pending block into one column. */
+.app-gallery > .app-pending {
+    grid-column: 1 / -1;
+}
+
+/* Commands "Fix dependencies" will run. */
+.app-log--cmds {
+    max-block-size: 8rem;
+    margin-block: var(--pf-t--global--spacer--xs) var(--pf-t--global--spacer--sm);
+}
+
+/* Menu bar name animation, sequenced by index.js:
+   .fx-contrail (3s), .fx-horizon (4s), then a 10s pause. */
+@property --app-fx-angle {
+    syntax: "<angle>";
+    inherits: false;
+    initial-value: 100deg;
+}
+
+.app-menubar__label {
+    /* Light theme: a pale glint reads against dark text. */
+    --app-fx-contrail: color-mix(in srgb, var(--pf-t--global--color--brand--default) 55%, white);
+    --app-fx-horizon: var(--app-sub-accent);
+    position: relative;
+    display: inline-block;
+    /* Equal top and bottom so the text stays centred; the bottom is room for the horizon line. */
+    padding-block: 3px;
+}
+
+/* Dark theme: the text is near-white, so the glint must be saturated.
+   (--app-sub-accent already switches to purple-30 in dark mode.) */
+:root.pf-v6-theme-dark .app-menubar__label {
+    --app-fx-contrail: var(--pf-t--color--blue--40);
+}
+
+/* Contrail: the text is painted by a wide gradient (base colour at both
+   ends, a bright core and a fainter trailing wisp in the middle) that
+   slides across while its angle sways. */
+.app-menubar__label.fx-contrail {
+    --app-fx-base: var(--pf-t--global--text--color--regular);
+    --app-fx-wisp: color-mix(in srgb, var(--app-fx-contrail) 50%, var(--app-fx-base));
+    background-image: linear-gradient(var(--app-fx-angle),
+        var(--app-fx-base) 0%,
+        var(--app-fx-base) 36%,
+        var(--app-fx-wisp) 41%,
+        var(--app-fx-contrail) 47%,
+        var(--app-fx-base) 52%,
+        var(--app-fx-wisp) 56%,
+        var(--app-fx-base) 61%,
+        var(--app-fx-base) 100%);
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: app-contrail 3s ease-in-out 1 both;
+}
+
+@keyframes app-contrail {
+    0% { background-position: 100% 0; --app-fx-angle: 100deg; }
+    25% { --app-fx-angle: 80deg; }
+    50% { --app-fx-angle: 106deg; }
+    75% { --app-fx-angle: 84deg; }
+    100% { background-position: 0% 0; --app-fx-angle: 100deg; }
+}
+
+/* Horizon: ::after is the line, ::before the travelling light. */
+.app-menubar__label::after,
+.app-menubar__label::before {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+    opacity: 0;
+}
+
+.app-menubar__label::after {
+    inset-inline: 0;
+    inset-block-end: 0;
+    block-size: 1px;
+    background: linear-gradient(90deg,
+        transparent,
+        var(--app-fx-horizon) 20%,
+        var(--app-fx-horizon) 80%,
+        transparent);
+}
+
+.app-menubar__label::before {
+    inset-block-end: -2px;
+    inset-inline-start: calc(100% - 4px);
+    inline-size: 4px;
+    block-size: 4px;
+    border-radius: 50%;
+    background: var(--app-fx-horizon);
+    box-shadow: 0 0 6px 1px var(--app-fx-horizon);
+}
+
+.app-menubar__label.fx-horizon::after {
+    animation: app-horizon-line 4s ease-in-out 1 both;
+}
+
+.app-menubar__label.fx-horizon::before {
+    animation: app-horizon-light 4s ease-in-out 1 both;
+}
+
+@keyframes app-horizon-line {
+    0% { opacity: 0; }
+    15% { opacity: 60%; }
+    85% { opacity: 60%; }
+    100% { opacity: 0; }
+}
+
+@keyframes app-horizon-light {
+    0% { inset-inline-start: calc(100% - 4px); opacity: 0; }
+    15% { inset-inline-start: calc(100% - 4px); opacity: 100%; }
+    85% { inset-inline-start: 0; opacity: 100%; }
+    100% { inset-inline-start: 0; opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .app-menubar__label.fx-contrail {
+        animation: none;
+        background: none;
+        color: var(--pf-t--global--text--color--regular);
+    }
+
+    .app-menubar__label::after,
+    .app-menubar__label::before {
+        display: none;
+    }
+}
+
+/* Sub-bar fade (pairs with setSubVisible() in functions.js) */
+:root {
+    --app-submenu-fade: 450ms; /* keep equal to FADE_MS in functions.js */
+}
+
+.app-submenu {
+    transition: opacity var(--app-submenu-fade) ease, transform var(--app-submenu-fade) ease;
+}
+
+.app-submenu.is-fading {
+    opacity: 0;
+    transform: translateY(-0.35rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .app-submenu {
+        transition: none;
+    }
+}
+
+/* The page is one card; each pane is a stack of flat blocks inside its body.
+   A block = heading row + content; consecutive blocks are divided by a rule,
+   so header, content and footer read as one surface instead of nested boxes. */
+.app-block + .app-block {
+    margin-block-start: var(--pf-t--global--spacer--lg);
+    padding-block-start: var(--pf-t--global--spacer--lg);
+    border-block-start: var(--pf-t--global--border--width--regular) solid var(--pf-t--global--border--color--default);
+}
+
+.app-block__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--pf-t--global--spacer--sm);
+    margin-block-end: var(--pf-t--global--spacer--sm);
+}
+
+.app-block__title {
+    margin: 0;
+    font-size: var(--pf-t--global--font--size--heading--sm);
+    font-weight: var(--pf-t--global--font--weight--heading--default);
+}
+
+/* Page card footer: text on the left, version on the right. */
+.app-footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--pf-t--global--spacer--sm);
+}
+
+/* ------------------------------------------------------------------
+ * Accessibility and polish
+ * ------------------------------------------------------------------ */
+
+/* Visible keyboard focus on the menu: the pills hide the browser default. */
+.app-menubar__toggle:focus-visible,
+.app-menubar__item:focus-visible {
+    outline: var(--pf-t--global--border--width--strong, 2px) solid var(--pf-t--global--color--brand--default);
+    outline-offset: 1px;
+}
+
+.app-menubar__toggle:active,
+.app-menubar__item:active {
+    background: var(--pf-t--global--background--color--action--plain--clicked, var(--pf-t--global--background--color--action--plain--hover));
+}
+
+/* Without backdrop blur the translucent bars would let page text show through. */
+@supports not (backdrop-filter: blur(1px)) {
+    .app-menubar,
+    .app-submenu {
+        background: var(--pf-t--global--background--color--primary--default);
+    }
+}
+
+/* Touch screens: bigger targets for the menu pills. */
+@media (pointer: coarse) {
+    .app-menubar__toggle,
+    .app-menubar__item {
+        min-block-size: 2.75rem;
+        display: inline-flex;
+        align-items: center;
+    }
+}
+
+/* Narrow windows: the bar is a little tighter so more of it fits. */
+@media (max-width: 36rem) {
+    .app-menubar,
+    .app-submenu {
+        max-width: calc(100% - 2 * var(--pf-t--global--spacer--sm));
+        margin-inline: var(--pf-t--global--spacer--sm);
+    }
+
+    .app-menubar__item {
+        padding-inline: var(--pf-t--global--spacer--sm);
+    }
+}
+
+/* High-contrast / forced colors drop backgrounds, so mark the current item
+   with an underline and keep the bars outlined. */
+@media (forced-colors: active) {
+    .app-menubar,
+    .app-submenu {
+        border: 1px solid CanvasText;
+    }
+
+    .app-menubar__item[aria-current] {
+        text-decoration: underline;
+        text-underline-offset: 0.3em;
+    }
+}
+
+/* Opening a pane fades it in (opacity only, twice the theme's fade duration), so a click on the menu visibly lands. */
+@media (prefers-reduced-motion: no-preference) {
+    .app-pane:not([hidden]) {
+        animation: app-pane-in calc(2 * var(--pf-t--global--motion--duration--fade--default, 150ms)) ease-out;
+    }
+}
+
+@keyframes app-pane-in {
+    from {
+        opacity: 0;
+    }
+}
+
+/* Links in the page and in modals read as links by colour alone, like the menu
+   bar; PatternFly's default underline is dropped. */
+.pf-v6-c-page__main a:not(.pf-v6-c-button),
+.app-modal a:not(.pf-v6-c-button) {
+    text-decoration: none;
+}
+
+/* Code blocks: dark purple in the dark theme, pale mint in the light one. */
+:root {
+    --app-code-bg: #e3f4ef;
+    --app-code-fg: #12332b;
+    --app-code-border: #a9d9cc;
+}
+
+:root.pf-v6-theme-dark {
+    --app-code-bg: #2a1c4e;
+    --app-code-fg: #ece6ff;
+    --app-code-border: #52408a;
+}
+
+.pf-v6-c-code-block {
+    --pf-v6-c-code-block--BackgroundColor: var(--app-code-bg);
+    --pf-v6-c-code-block--BorderColor: var(--app-code-border);
+    --pf-v6-c-code-block--BorderWidth: 1px;
+    color: var(--app-code-fg);
+}
+

@@ -1,0 +1,14 @@
+{
+    "requires": {
+        "cockpit": "175"
+    },
+    "tools": {
+        "index": {
+            "label": "Crewmate",
+            "order": -1000,
+            "keywords": [
+                { "matches": ["crewmate", "crewpit", "gallery", "packages", "apps", "install", "plugins"] }
+            ]
+        }
+    }
+}

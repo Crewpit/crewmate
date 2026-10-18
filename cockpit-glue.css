@@ -1,0 +1,32 @@
+/*
+ * Cockpit's own layout glue, not part of PatternFly
+ */
+
+[hidden] {
+    display: none !important;
+}
+
+/* html.index-page is the shell's own document; anything in an iframe is not. */
+html:not(.index-page) body {
+    overflow-block: hidden;
+}
+
+html:not(.index-page) body .ct-page-fill {
+    block-size: 100% !important;
+}
+
+html:not(.index-page) body .ct-page-fill .pf-v6-c-page__main-container {
+    block-size: 100%;
+}
+
+body {
+    background: var(--pf-t--global--background--color--secondary--default);
+}
+
+/* Remaps the main-container's grid area to the one PatternFly reserves for
+   the masthead, since there's no in-page masthead/sidebar here. */
+@media (min-width: 75rem) {
+    .pf-v6-c-page.no-masthead-sidebar {
+        --pf-v6-c-page__main-container--GridArea: var(--pf-v6-c-page--masthead--main-container--GridArea);
+    }
+}

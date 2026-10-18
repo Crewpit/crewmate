@@ -1,0 +1,22 @@
+Crewmate (https://github.com/Crewpit/crewmate)
+Copyright 2026 Marcel Neculae
+
+Built from Crewdriver (https://github.com/Crewpit/crewdriver),
+Copyright 2026 Marcel Neculae.
+
+This product includes software developed by Marcel Neculae (https://github.com/complexdbg).
+
+Licensed under the Apache License, Version 2.0. See the LICENSE file.
+
+Third-party components:
+
+  PatternFly (vendor/patternfly/)
+  Copyright Red Hat, Inc. Licensed under the MIT License.
+  https://www.patternfly.org/
+
+  Red Hat Display, Red Hat Text, Red Hat Mono fonts (vendor/patternfly/assets/fonts/)
+  Copyright Red Hat, Inc. Licensed under the SIL Open Font License 1.1.
+
+  Font Awesome Free (vendor/patternfly/assets/fonts/webfonts/)
+  Licensed under the SIL Open Font License 1.1 (fonts).
+  https://fontawesome.com/license/free

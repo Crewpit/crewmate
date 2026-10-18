@@ -1,0 +1,7 @@
+{
+  "cmSchema": 1,
+  "version": "1.0.0",
+  "issues": "https://github.com/Crewpit/crewmate/issues",
+  "cockpitMin": 175,
+  "dependencies": []
+}

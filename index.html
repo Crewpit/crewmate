@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title translate="yes">Crewmate</title>
+    <meta charset="utf-8" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <script src="theme.js"></script>
+
+    <link href="vendor/patternfly/patternfly.min.css" type="text/css" rel="stylesheet" />
+    <link href="cockpit-glue.css" type="text/css" rel="stylesheet" />
+    <link href="index.css" type="text/css" rel="stylesheet" />
+</head>
+
+<body class="pf-v6-m-tabular-nums">
+    <div class="ct-page-fill" id="app">
+        <div class="pf-v6-c-page no-masthead-sidebar">
+            <div class="pf-v6-c-page__main-container">
+                <nav id="app-menu" class="app-menubar"></nav>
+
+                <main class="pf-v6-c-page__main" tabindex="-1">
+
+                    <section class="pf-v6-c-page__main-section">
+                        <div class="pf-v6-c-card">
+                            <div class="pf-v6-c-card__header">
+                                <div class="pf-v6-c-card__header-main">
+                                    <div class="pf-v6-c-card__title">
+                                        <h1 class="pf-v6-c-card__title-text pf-v6-c-title pf-m-2xl" translate="yes">Crewmate</h1>
+                                    </div>
+                                    <p class="app-muted" translate="yes">Install Cockpit apps from the Crewpit registry, a git URL or an archive, keep them up to date, and remove them when you're done.</p>
+                                    <div id="dry-banner"></div>
+                                    <div id="health-banner"></div>
+                                </div>
+                            </div>
+                            <hr class="pf-v6-c-divider" />
+                            <div class="pf-v6-c-card__body">
+
+                    <div id="pane-installed" class="app-pane" hidden>
+                        <div class="app-block">
+                            <div class="app-block__header">
+                                <h2 class="app-block__title" translate="yes">Installed Packages</h2>
+                                <div class="app-actions">
+                                    <span id="installed-updated" class="app-muted" aria-live="off"></span>
+                                    <button id="installed-refresh" class="pf-v6-c-button pf-m-secondary pf-m-small" type="button" translate="yes">Refresh</button>
+                                </div>
+                            </div>
+                            <p class="app-muted pf-v6-u-mb-md" translate="yes">Packages Crewmate installed, plus any other Cockpit package on this machine that has a preflight.json (looked up in /usr/share/cockpit and /usr/local/share/cockpit). Cockpit's bundled packages are left out.</p>
+                            <div id="installed-alert"></div>
+                            <div id="installed-table"></div>
+                        </div>
+                    </div>
+
+                    <div id="pane-gallery" class="app-pane" hidden>
+                        <div class="app-block">
+                            <div class="app-block__header">
+                                <h2 class="app-block__title" translate="yes">Crewpit Registry</h2>
+                                <div class="app-actions">
+                                    <span id="gallery-updated" class="app-muted" aria-live="off"></span>
+                                    <button id="gallery-refresh" class="pf-v6-c-button pf-m-primary pf-m-small" type="button" translate="yes">Refresh</button>
+                                </div>
+                            </div>
+                            <p class="app-muted pf-v6-u-mb-md"><span translate="yes">Source:</span> <code id="gallery-source"></code></p>
+                            <div id="gallery-alert"></div>
+                            <div id="gallery-list" class="app-gallery"></div>
+                        </div>
+                    </div>
+
+                    <div id="pane-custom" class="app-pane" hidden>
+                        <div class="app-block">
+                            <div class="app-block__header">
+                                <h2 class="app-block__title" translate="yes">From a Git URL</h2>
+                            </div>
+                            <p class="app-muted pf-v6-u-mb-md" translate="yes">Any git URL (GitHub, GitLab, Gitea or self-hosted), or a direct http(s) link to a .tar.gz or .zip file.</p>
+                            <form id="git-form" class="pf-v6-c-form pf-m-horizontal" novalidate>
+                                <div class="pf-v6-c-form__group">
+                                    <div class="pf-v6-c-form__group-label">
+                                        <label class="pf-v6-c-form__label" for="git-url"><span class="pf-v6-c-form__label-text" translate="yes">URL</span></label>
+                                    </div>
+                                    <div class="pf-v6-c-form__group-control">
+                                        <span class="pf-v6-c-form-control"><input id="git-url" type="text" placeholder="https://gitlab.example.com/me/cockpit-thing" /></span>
+                                    </div>
+                                </div>
+                                <div class="pf-v6-c-form__group">
+                                    <div class="pf-v6-c-form__group-label">
+                                        <label class="pf-v6-c-form__label" for="git-ref"><span class="pf-v6-c-form__label-text" translate="yes">Branch or Tag</span></label>
+                                    </div>
+                                    <div class="pf-v6-c-form__group-control">
+                                        <span class="pf-v6-c-form-control"><input id="git-ref" type="text" placeholder="default branch" /></span>
+                                    </div>
+                                </div>
+                                <div class="pf-v6-c-form__group">
+                                    <div class="pf-v6-c-form__group-label">
+                                        <label class="pf-v6-c-form__label" for="git-name"><span class="pf-v6-c-form__label-text" translate="yes">Package Name</span></label>
+                                    </div>
+                                    <div class="pf-v6-c-form__group-control">
+                                        <span class="pf-v6-c-form-control"><input id="git-name" type="text" placeholder="taken from the URL" /></span>
+                                        <div class="pf-v6-c-helper-text"><div class="pf-v6-c-helper-text__item"><span class="pf-v6-c-helper-text__item-text" translate="yes">Used as the folder name under /usr/share/cockpit/.</span></div></div>
+                                    </div>
+                                </div>
+                                <div class="pf-v6-c-form__group pf-m-action">
+                                    <div class="pf-v6-c-form__group-control">
+                                        <div class="pf-v6-c-form__actions">
+                                            <button class="pf-v6-c-button pf-m-primary" type="submit" translate="yes">Install</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="app-block">
+                            <div class="app-block__header">
+                                <h2 class="app-block__title" translate="yes">Upload a ZIP</h2>
+                            </div>
+                            <p class="app-muted pf-v6-u-mb-md" translate="yes">A .zip or .tar.gz of a Cockpit package. If everything sits inside one top-level folder, that folder is stripped.</p>
+                            <form id="zip-form" class="pf-v6-c-form pf-m-horizontal" novalidate>
+                                <div class="pf-v6-c-form__group">
+                                    <div class="pf-v6-c-form__group-label">
+                                        <label class="pf-v6-c-form__label" for="zip-file"><span class="pf-v6-c-form__label-text" translate="yes">Archive</span></label>
+                                    </div>
+                                    <div class="pf-v6-c-form__group-control">
+                                        <input id="zip-file" type="file" accept=".zip,.tar.gz,.tgz,application/zip,application/gzip" />
+                                    </div>
+                                </div>
+                                <div class="pf-v6-c-form__group">
+                                    <div class="pf-v6-c-form__group-label">
+                                        <label class="pf-v6-c-form__label" for="zip-name"><span class="pf-v6-c-form__label-text" translate="yes">Package Name</span></label>
+                                    </div>
+                                    <div class="pf-v6-c-form__group-control">
+                                        <span class="pf-v6-c-form-control"><input id="zip-name" type="text" placeholder="taken from the file name" /></span>
+                                    </div>
+                                </div>
+                                <div class="pf-v6-c-form__group pf-m-action">
+                                    <div class="pf-v6-c-form__group-control">
+                                        <div class="pf-v6-c-form__actions">
+                                            <button class="pf-v6-c-button pf-m-primary" type="submit" translate="yes">Install</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div id="pane-log" class="app-pane" hidden>
+                        <div class="app-block">
+                            <div class="app-block__header">
+                                <h2 class="app-block__title" translate="yes">Debug Log</h2>
+                                <div class="app-actions">
+                                    <button id="log-copy" class="pf-v6-c-button pf-m-secondary pf-m-small" type="button" translate="yes">Copy</button>
+                                    <button id="log-clear" class="pf-v6-c-button pf-m-link pf-m-small" type="button" translate="yes">Clear</button>
+                                </div>
+                            </div>
+                            <p class="app-muted pf-v6-u-mb-md" translate="yes">Each command Crewmate runs and everything it prints, in order. The log lives in memory and is cleared when you leave the page.</p>
+                            <pre id="activity-log" class="app-log" aria-live="off"></pre>
+                        </div>
+                    </div>
+
+                    <div id="pane-settings" class="app-pane" hidden>
+                        <div class="app-block">
+                            <div class="app-block__header">
+                                <h2 class="app-block__title" translate="yes">Install Location</h2>
+                            </div>
+                            <div class="pf-v6-c-radio">
+                                <input class="pf-v6-c-radio__input" type="radio" id="scope-system" name="scope" value="system" checked />
+                                <label class="pf-v6-c-radio__label" for="scope-system" translate="yes">System-wide (/usr/share/cockpit)</label>
+                                <span class="pf-v6-c-radio__description" translate="yes">Anyone who can log in to Cockpit on this machine can use the app. Needs administrative access.</span>
+                            </div>
+                            <div class="pf-v6-c-radio pf-v6-u-mt-sm">
+                                <input class="pf-v6-c-radio__input" type="radio" id="scope-user" name="scope" value="user" disabled />
+                                <label class="pf-v6-c-radio__label pf-m-disabled" for="scope-user" translate="yes">Just Me (~/.local/share/cockpit)</label>
+                                <span class="pf-v6-c-radio__description" translate="yes">Not available yet.</span>
+                            </div>
+                        </div>
+                        <div class="app-block">
+                            <div class="app-block__header">
+                                <h2 class="app-block__title" translate="yes">Sources and Transfers</h2>
+                            </div>
+                            <div id="settings-form"></div>
+                            <p class="app-muted pf-v6-u-mt-md pf-v6-u-mb-md" translate="yes">What each transfer method can do:</p>
+<table class="pf-v6-c-table pf-m-compact app-legend" aria-label="Transfer methods">
+                                    <thead class="pf-v6-c-table__thead">
+                                        <tr class="pf-v6-c-table__tr">
+                                            <th class="pf-v6-c-table__th" scope="col">Method</th>
+                                            <th class="pf-v6-c-table__th" scope="col">Needs</th>
+                                            <th class="pf-v6-c-table__th" scope="col">HTTPS</th>
+                                            <th class="pf-v6-c-table__th" scope="col">HTTP</th>
+                                            <th class="pf-v6-c-table__th" scope="col">Sources</th>
+                                            <th class="pf-v6-c-table__th" scope="col">Notes</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="pf-v6-c-table__tbody">
+                                        <tr class="pf-v6-c-table__tr">
+                                            <td class="pf-v6-c-table__td" data-label="Method"><strong>git</strong></td>
+                                            <td class="pf-v6-c-table__td" data-label="Needs">git</td>
+                                            <td class="pf-v6-c-table__td app-yes" data-label="HTTPS">✓ verified</td>
+                                            <td class="pf-v6-c-table__td app-yes" data-label="HTTP">✓</td>
+                                            <td class="pf-v6-c-table__td" data-label="Sources">Any git server (GitHub, GitLab, Gitea, self-hosted), https/http/ssh URLs</td>
+                                            <td class="pf-v6-c-table__td" data-label="Notes">Shallow clone of a branch or tag, with the exact commit recorded. Private repos work through the SSH keys of the Cockpit user; it never asks for a password. Can't fetch a single file, so the registry list is downloaded with the next method.</td>
+                                        </tr>
+                                        <tr class="pf-v6-c-table__tr">
+                                            <td class="pf-v6-c-table__td" data-label="Method"><strong>curl</strong></td>
+                                            <td class="pf-v6-c-table__td" data-label="Needs">curl, gzip, tar (unzip for .zip)</td>
+                                            <td class="pf-v6-c-table__td app-yes" data-label="HTTPS">✓ verified</td>
+                                            <td class="pf-v6-c-table__td app-yes" data-label="HTTP">✓</td>
+                                            <td class="pf-v6-c-table__td" data-label="Sources">GitHub and GitLab repos (as a tarball), or a direct .tar.gz / .zip link</td>
+                                            <td class="pf-v6-c-table__td" data-label="Notes">Follows redirects and respects proxy settings. No commit is recorded. Other git servers need git.</td>
+                                        </tr>
+                                        <tr class="pf-v6-c-table__tr">
+                                            <td class="pf-v6-c-table__td" data-label="Method"><strong>wget</strong></td>
+                                            <td class="pf-v6-c-table__td" data-label="Needs">wget, gzip, tar (unzip for .zip)</td>
+                                            <td class="pf-v6-c-table__td app-yes" data-label="HTTPS">✓ verified</td>
+                                            <td class="pf-v6-c-table__td app-yes" data-label="HTTP">✓</td>
+                                            <td class="pf-v6-c-table__td" data-label="Sources">Same as curl</td>
+                                            <td class="pf-v6-c-table__td" data-label="Notes">Same as curl. BusyBox wget works, though some builds lack HTTPS.</td>
+                                        </tr>
+                                        <tr class="pf-v6-c-table__tr">
+                                            <td class="pf-v6-c-table__td" data-label="Method"><strong>openssl</strong></td>
+                                            <td class="pf-v6-c-table__td" data-label="Needs">openssl, gzip, tar</td>
+                                            <td class="pf-v6-c-table__td app-yes" data-label="HTTPS">✓ verified</td>
+                                            <td class="pf-v6-c-table__td app-no" data-label="HTTP">✗</td>
+                                            <td class="pf-v6-c-table__td" data-label="Sources">Same as curl</td>
+                                            <td class="pf-v6-c-table__td" data-label="Notes">Plain HTTP/1.0 over <code>openssl s_client</code>, with certificate and hostname checks. Follows up to 5 redirects itself. No proxy support. Meant for hosts with neither curl nor wget.</td>
+                                        </tr>
+                                        <tr class="pf-v6-c-table__tr">
+                                            <td class="pf-v6-c-table__td" data-label="Method"><strong>/dev/tcp</strong></td>
+                                            <td class="pf-v6-c-table__td" data-label="Needs">bash, gzip, tar</td>
+                                            <td class="pf-v6-c-table__td app-no" data-label="HTTPS">✗</td>
+                                            <td class="pf-v6-c-table__td app-warn" data-label="HTTP">✓ unencrypted</td>
+                                            <td class="pf-v6-c-table__td" data-label="Sources">Direct .tar.gz / .zip links on a plain http:// server</td>
+                                            <td class="pf-v6-c-table__td" data-label="Notes">Last resort for very minimal systems. Nothing is encrypted or verified, so only use it with a mirror you control on a trusted network. GitHub and GitLab can't be reached this way.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                        </div>
+                        <div class="app-block">
+                            <div class="app-block__header">
+                                <h2 class="app-block__title" translate="yes">Files and Host</h2>
+                                <div class="app-actions">
+                                    <button id="cleanup-btn" class="pf-v6-c-button pf-m-secondary pf-m-small" type="button" translate="yes">Remove Staging Folders</button>
+                                </div>
+                            </div>
+                            <dl id="host-info" class="pf-v6-c-description-list pf-m-horizontal"></dl>
+                        </div>
+                    </div>
+
+                            </div>
+                            <hr class="pf-v6-c-divider" />
+                            <div class="pf-v6-c-card__footer app-footer">
+                                <span><span translate="yes">App list available on</span> <a href="https://github.com/Crewpit" target="_blank" rel="noopener noreferrer" translate="yes">Crewpit Project</a></span>
+                                <span class="app-muted">Crewmate v1.0.0</span>
+                            </div>
+                        </div>
+                    </section>
+
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <!-- cockpit.js is served by cockpit-ws, not shipped in this package -->
+    <script src="../base1/cockpit.js"></script>
+    <script src="functions.js"></script>
+    <script src="index.js"></script>
+</body>
+</html>
