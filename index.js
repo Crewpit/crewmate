@@ -1061,6 +1061,8 @@
         var cancelBtn = el("button", { class: "pf-v6-c-button pf-m-link", type: "button", text: "Cancel" });
         var fixBtn = el("button", { class: "pf-v6-c-button pf-m-primary", type: "button", text: "Fix Dependencies" + (DRY ? " (dry run)" : "") });
         var recheckBtn = el("button", { class: "pf-v6-c-button pf-m-secondary", type: "button", text: "Re-Check" });
+        var forceBtn = el("button", { class: "pf-v6-c-button pf-m-danger", type: "button", text: "Force Install" + (DRY ? " (dry run)" : "") });
+        forceBtn.hidden = true;
         fixBtn.hidden = true;
         recheckBtn.hidden = true;
 
@@ -1075,7 +1077,7 @@
             size: "lg",
             body: [intro, stepList, checks, depsBox,
                    el("p", { class: "app-settings__heading pf-v6-u-mt-md", text: "Log" }), logPre],
-            footer: [fixBtn, recheckBtn, installBtn, cancelBtn],
+            footer: [fixBtn, recheckBtn, forceBtn, installBtn, cancelBtn],
             onClose: function () {
                 if (reloader)
                     reloader.stop();
@@ -1196,7 +1198,7 @@
         function renderDeps(needs, pf) {
             depsBox.replaceChildren();
             if (!needs.length)
-                return;
+                return Promise.resolve();
             var pm = state.env.pm;
             depsBox.appendChild(el("p", { class: "app-settings__heading", text: "Dependencies" }));
             depsBox.appendChild(el("ul", { class: "app-changes" }, needs.map(function (r) {
@@ -1299,12 +1301,12 @@
             };
         }
 
-        function install() {
+        function install(force) {
             installBtn.disabled = fixBtn.disabled = recheckBtn.disabled = true;
             cancelBtn.disabled = true;
-            fixBtn.hidden = recheckBtn.hidden = true;
+            fixBtn.hidden = recheckBtn.hidden = forceBtn.hidden = true;
             step("install", "run");
-            doInstall(src, pkgDir, fetched)
+            doInstall(src, pkgDir, fetched, force)
                     .then(function () {
                         finished = true;
                         step("install", "ok", installPath(src.name));
@@ -1316,7 +1318,16 @@
                         }
                         modal.setStatus("Done. Reload the Cockpit tab to update the sidebar and pick up changed files.");
                         reloader = reloadCountdown(installBtn.parentNode, cancelBtn, src.name + (src.upgrade ? " upgraded" : " installed"));
-                    }, function (ex) { fail("install", ex) })
+                    }, function (ex) {
+                        fail("install", ex);
+                        // A hand-deployed copy (no preflight.json) blocks the install. Offer to replace it;
+                        // the helper keeps the old folder as a rollback copy.
+                        if (!force && /isn't a Crewpit package/.test(errorText(ex))) {
+                            modal.setStatus(installPath(src.name) + " was deployed by hand. Force Install replaces it and keeps the old copy as a rollback.");
+                            forceBtn.hidden = false;
+                            forceBtn.onclick = function () { install(true) };
+                        }
+                    })
                     .finally(function () {
                         cancelBtn.disabled = false;
                         if (!reloader)
@@ -1471,8 +1482,8 @@
                 });
     }
 
-    function doInstall(src, pkgDir, fetched) {
-        return helper(["install", pkgDir, src.name])
+    function doInstall(src, pkgDir, fetched, force) {
+        return helper(force ? ["install", pkgDir, src.name, "force"] : ["install", pkgDir, src.name])
                 .then(function () {
                     var prev = state.config.installed[src.name] || {};
                     var pfVersion = fetched.preflight && typeof fetched.preflight.version === "string" ? fetched.preflight.version : "";

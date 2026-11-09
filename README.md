@@ -157,3 +157,14 @@ The Gallery reads a `registry.json`, by default the one in the Crewpit `.github`
 `href` is the repository URL (GitHub and GitLab work without git on the host), `version` should match the one in your `preflight.json`, and `description` is the text on the Gallery card. The package name is taken from the last part of `href`.
 
 Once you have read this section and your package installs cleanly from a git URL, you can request to have it added to the registry by opening an issue on the [Crewpit `.github` repository](https://github.com/Crewpit/.github/issues) with the repository link and a one-line description. After it is listed, bumping `version` in `preflight.json` and in the registry is all it takes for users to see an upgrade.
+
+## Changelog
+
+### v1.0.1
+
+- Fixed the install dialog stopping with a preflight error when every dependency was already installed.
+- Added **Force Install** for packages that were deployed by hand. Crewmate now offers to replace the manual copy with the Gallery version (the old copy is kept as a rollback), so the package becomes a Gallery install that can track the registry for future updates.
+
+### v1.0.0
+
+- Initial release of the Crewmate package manager.

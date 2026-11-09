@@ -519,18 +519,24 @@ cmd_pkgcheck() {
 
 cmd_install() {
     check_root
-    _src=$1 _name=$2
+    _src=$1 _name=$2 _force=${3:-}
     valid_stage "$_src"
     valid_name "$_name"
+    [ -z "$_force" ] || [ "$_force" = force ] || die "unknown install option '$_force'"
     [ -f "$_src/manifest.json" ] || die "$_src has no manifest.json"
     [ -e "$_src/$PREFLIGHT" ] || die "$_src has no $PREFLIGHT; Crewmate only installs packages that ship one"
     cmd_init >/dev/null
 
     _t="$PKGDIR/$_name"
     _new="$PKGDIR/.$_name.crewmate-new"
-    # Never overwrite something that isn't a Crewpit package (no preflight file).
+    # Never overwrite something that isn't a Crewpit package (no preflight file)
+    # unless asked to. A forced install still keeps the old copy as a rollback.
     if [ -e "$_t" ] && ! is_crewpit "$_t"; then
-        die "$_t exists and isn't a Crewpit package (no $PREFLIGHT); refusing to overwrite it"
+        if [ "$_force" = force ]; then
+            log install "forced: replacing non-Crewpit install at $_t (old copy kept as rollback)"
+        else
+            die "$_t exists and isn't a Crewpit package (no $PREFLIGHT); refusing to overwrite it"
+        fi
     fi
     if [ "$DRY" = 1 ]; then
         log install "dry run: target $_t (live target would be /usr/share/cockpit/$_name)"
@@ -624,7 +630,7 @@ case $_cmd in
     unpack) [ $# -eq 2 ] || die "usage: unpack <archive> <name>"; cmd_unpack "$1" "$2" ;;
     probe) [ $# -ge 2 ] || die "usage: probe <name> <exists|version> [cmd]"; cmd_probe "$@" ;;
     pkgcheck) [ $# -eq 2 ] || die "usage: pkgcheck <pm> <package>"; cmd_pkgcheck "$1" "$2" ;;
-    install) [ $# -eq 2 ] || die "usage: install <stagedir> <name>"; cmd_install "$1" "$2" ;;
+    install) [ $# -ge 2 ] && [ $# -le 3 ] || die "usage: install <stagedir> <name> [force]"; cmd_install "$@" ;;
     uninstall) [ $# -eq 1 ] || die "usage: uninstall <name>"; cmd_uninstall "$1" ;;
     list) cmd_list ;;
     cleanup) [ $# -eq 1 ] || die "usage: cleanup <stage>"; cmd_cleanup "$1" ;;
